@@ -63,6 +63,10 @@
         })
         .then(function (data) {
           if (data && data.ok) {
+            // GA4 key event: lead captured (newsletter / inline opt-in)
+            if (typeof window.gtag === "function") {
+              window.gtag("event", "generate_lead", { source: payload.source, form_type: "subscribe" });
+            }
             form.reset();
             if (btn) btn.textContent = "Subscribed";
             setNote("You're in. Check your inbox to confirm.", "success");

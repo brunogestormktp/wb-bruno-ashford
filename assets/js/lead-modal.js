@@ -264,7 +264,13 @@
       })
         .then(function (res) { return res.json().catch(function () { return { ok: res.ok }; }); })
         .then(function (data) {
-          if (data && data.ok) { showSuccess(); }
+          if (data && data.ok) {
+            // GA4 key event: lead captured (lead modal)
+            if (typeof window.gtag === "function") {
+              window.gtag("event", "generate_lead", { source: source, form_type: "lead_modal", interest: interestVal });
+            }
+            showSuccess();
+          }
           else {
             if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitLabel; }
             setNote("Something went wrong. Please try again in a moment.", "error");
@@ -293,4 +299,23 @@
       if (validateStep(current)) submit();
     });
   });
+})();
+
+/* GA4 begin_checkout: fires when a visitor clicks any Lemon Squeezy Buy button
+   (skills store). Lives here because this file loads on every page. */
+(function () {
+  "use strict";
+  document.addEventListener("click", function (ev) {
+    var a = ev.target && ev.target.closest ? ev.target.closest("a.lemonsqueezy-button") : null;
+    if (!a || typeof window.gtag !== "function") return;
+    var box = a.closest("[data-skill], [data-name], .skm, article, section");
+    var h = box ? box.querySelector("h1, h2, h3") : null;
+    var name = a.getAttribute("data-item") || (box && box.getAttribute("data-name")) ||
+      (h ? h.textContent.trim() : document.title);
+    window.gtag("event", "begin_checkout", {
+      items: [{ item_name: name }],
+      checkout_url: (a.href || "").split("?")[0],
+      page_path: location.pathname
+    });
+  }, true);
 })();
